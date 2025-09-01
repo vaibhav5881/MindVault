@@ -4,10 +4,12 @@ import net.engineeringdigest.journalApp.cache.AppCache;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.enums.Sentiment;
+import net.engineeringdigest.journalApp.model.SentimentData;
 import net.engineeringdigest.journalApp.repository.UserRespositoryImpl;
 import net.engineeringdigest.journalApp.service.EmailService;
 import net.engineeringdigest.journalApp.service.SentimentAnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +31,9 @@ public class UserScheduler {
     private SentimentAnalysisService sentimentAnalysisService;
     @Autowired
     private AppCache appCache;
+    @Autowired
+    private KafkaTemplate<String , SentimentData> kafkaTemplate;
+
 
     public void fetchUsersAndSendSaMail(){
         List<User> users= userRespository.getUserForSA();
@@ -50,11 +55,18 @@ public class UserScheduler {
                     mostFrequentSentiment = entry.getKey();
                 }
             }
-            if(mostFrequentSentiment != null){
-                emailService.sendEmail(
-                        user.getEmail(),
-                        "Sentiment for last 7 days ",
-                        mostFrequentSentiment.toString());
+//            if(mostFrequentSentiment != null){
+//                emailService.sendEmail(
+//                        user.getEmail(),
+//                        "Sentiment for last 7 days ",
+//                        mostFrequentSentiment.toString());
+//            }
+            if (mostFrequentSentiment != null){
+                SentimentData sentimentData = SentimentData.builder()
+                        .email(user.getEmail())
+                        .sentiment("Sentiment for last 7 days " + mostFrequentSentiment.toString())
+                        .build();
+                kafkaTemplate.send("weekly-sentiments" , sentimentData.getEmail() , sentimentData);
             }
 
         }
