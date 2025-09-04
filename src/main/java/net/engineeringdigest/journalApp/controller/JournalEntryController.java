@@ -1,6 +1,8 @@
 package net.engineeringdigest.journalApp.controller;
 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import net.engineeringdigest.journalApp.dto.JournalEntryDto;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.service.JournalEntryService;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/journal")
+@Tag(name = "Journal Entry APIs" , description = "Read , Create , Update & Delete Journal Entry")
 public class JournalEntryController {
 
     @Autowired
@@ -38,7 +41,11 @@ public class JournalEntryController {
     }
 
     @PostMapping
-    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry myEntry){
+    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntryDto myEntryDto){
+        JournalEntry myEntry = new JournalEntry();
+        myEntry.setTitle(myEntryDto.getTitle());
+        myEntry.setContent(myEntryDto.getContent());
+        myEntry.setSentiment(myEntryDto.getSentiment());
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userName = authentication.getName();
@@ -60,7 +67,8 @@ public class JournalEntryController {
 //    }
 
     @GetMapping("/id/{requestedId}")
-    public ResponseEntity<JournalEntry> getJournalEntryById(@PathVariable ObjectId requestedId){
+    public ResponseEntity<JournalEntry> getJournalEntryById(@PathVariable String id){
+        ObjectId requestedId = new ObjectId(id);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
         User user = userService.findByUserName(userName);
@@ -76,7 +84,8 @@ public class JournalEntryController {
     }
 
     @DeleteMapping("/id/{requestedId}")
-    public ResponseEntity<Void> deleteJournalEntryById(@PathVariable ObjectId requestedId){
+    public ResponseEntity<Void> deleteJournalEntryById(@PathVariable String id){
+        ObjectId requestedId = new ObjectId(id);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
         boolean removed =  journalEntryService.deleteById(requestedId, userName);
@@ -89,9 +98,14 @@ public class JournalEntryController {
 
     @PutMapping("/id/{requestedId}")
     public ResponseEntity<JournalEntry> updateJournalEntryById(
-            @PathVariable ObjectId requestedId,
-            @RequestBody JournalEntry newEntry)
+            @PathVariable String id,
+            @RequestBody JournalEntryDto newEntryDto)
     {
+        ObjectId requestedId = new ObjectId(id);
+        JournalEntry newEntry = new JournalEntry();
+        newEntry.setTitle(newEntryDto.getTitle());
+        newEntry.setContent(newEntryDto.getContent());
+        newEntry.setSentiment(newEntryDto.getSentiment());
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userName = authentication.getName();

@@ -1,5 +1,6 @@
 package net.engineeringdigest.journalApp.scheduler;
 
+import ch.qos.logback.core.encoder.EchoEncoder;
 import net.engineeringdigest.journalApp.cache.AppCache;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
@@ -66,7 +67,11 @@ public class UserScheduler {
                         .email(user.getEmail())
                         .sentiment("Sentiment for last 7 days " + mostFrequentSentiment.toString())
                         .build();
-                kafkaTemplate.send("weekly-sentiments" , sentimentData.getEmail() , sentimentData);
+                try{
+                    kafkaTemplate.send("weekly-sentiments" , sentimentData.getEmail() , sentimentData);
+                }catch (Exception e){
+                    emailService.sendEmail(sentimentData.getEmail() , "Sentiment for previous week ", sentimentData.getSentiment());
+                }
             }
 
         }

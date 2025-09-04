@@ -1,6 +1,8 @@
 package net.engineeringdigest.journalApp.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import net.engineeringdigest.journalApp.api.respone.WeatherResponse;
+import net.engineeringdigest.journalApp.dto.UserDto;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.service.UserService;
 import net.engineeringdigest.journalApp.service.WeatherService;
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
+@Tag(name = "User APIs" , description = "Read , Update & Delete User")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -55,7 +58,12 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<User> updateUser( @RequestBody User newUser ){
+    public ResponseEntity<User> updateUser( @RequestBody UserDto newUserDto ){
+        User newUser = new User();
+        newUser.setUserName(newUserDto.getUserName());
+        newUser.setPassword(newUserDto.getPassword());
+        newUser.setEmail(newUserDto.getEmail());
+        newUser.setSentimentAnalysis(newUserDto.isSentimentAnalysis());
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userName = authentication.getName();

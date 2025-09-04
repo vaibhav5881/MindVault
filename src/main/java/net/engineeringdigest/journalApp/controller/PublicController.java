@@ -1,6 +1,8 @@
 package net.engineeringdigest.journalApp.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import net.engineeringdigest.journalApp.dto.UserDto;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.service.UserDetailsServiceImpl;
 import net.engineeringdigest.journalApp.service.UserService;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/public")
 @Slf4j
+@Tag(name = "Public APIs" , description = "Signup , Login & Health-check")
 public class PublicController {
 
     @Autowired
@@ -31,7 +34,12 @@ public class PublicController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<User> signup(@RequestBody User newUser) {
+    public ResponseEntity<User> signup(@RequestBody UserDto newUserDto) {
+        User newUser = new User();
+        newUser.setUserName(newUserDto.getUserName());
+        newUser.setPassword(newUserDto.getPassword());
+        newUser.setEmail(newUserDto.getEmail());
+        newUser.setSentimentAnalysis(newUserDto.isSentimentAnalysis());
         try {
             boolean isSaved = userService.saveNewUser(newUser);
 
@@ -48,7 +56,11 @@ public class PublicController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user){
+    public ResponseEntity<String> login(@RequestBody UserDto userDto){
+        User user = new User();
+        user.setUserName(userDto.getUserName());
+        user.setPassword(userDto.getPassword());
+
         try{
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(user.getUserName() , user.getPassword())
